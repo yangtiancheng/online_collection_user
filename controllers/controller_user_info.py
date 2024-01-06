@@ -18,7 +18,7 @@ class BusControllerInherit(BusController):
         res = super(BusControllerInherit, self).poll(channels, last, options)
         return res
     @staticmethod
-    def collection_current_users():
+    def collection_current_users(from_login=None):
         request_ip = request.httprequest.remote_addr
         request_db = request.httprequest.session.db
         request_user = request.httprequest.session.uid
@@ -27,12 +27,23 @@ class BusControllerInherit(BusController):
         try:
             conn = odoo.sql_db.db_connect(request_db)
             with conn.cursor() as cr:
-                sql = """
-                    insert into collection_user_info(request_ip, request_db, request_user, request_login, fast_login_time, latest_login_time)
-                    values (%s, %s, %s, %s, now(), now())
-                    on conflict (request_ip, request_db, request_user, request_login) do update set latest_login_time = now();
+                user_info_sql = """
+                    insert into collection_user_info(request_ip, request_db, request_user, request_login, 
+                        fast_login_time, latest_login_time, create_uid, create_date, write_uid, write_date)
+                    values (%s, %s, %s, %s, now(), now(), %s, now(), %s, now())
+                    on conflict (request_ip, request_db, request_user, request_login, request_user, request_user) 
+                    do update set latest_login_time = now();
                 """
-                cr.execute(sql, (request_ip, request_db, request_user, request_login))
+                params = (request_ip, request_db, request_user, request_login, request_user, request_user)
+                if from_login:
+                    user_info_sql += """
+                        insert into collection_user_info_history(request_ip, request_db, request_user, request_login, 
+                            fast_login_time, latest_login_time, create_uid, create_date, write_uid, write_date)
+                            values (%s, %s, %s, %s, now(), now(), %s, now(), %s, now());
+                    """
+                    params = (request_ip, request_db, request_user, request_login, request_user, request_user,
+                              request_ip, request_db, request_user, request_login, request_user, request_user)
+                cr.execute(user_info_sql, params)
         except Exception as e:
             raise e
 
@@ -42,7 +53,7 @@ class HomeInherit(Home):
     def web_client(self, s_action=None, **kw):
         res = super(HomeInherit, self).web_client(s_action, **kw)
         if isinstance(res, Response) and res.status_code == 200:
-            BusControllerInherit.collection_current_users()
+            BusControllerInherit.collection_current_users(from_login=True)
         return res
 
 
