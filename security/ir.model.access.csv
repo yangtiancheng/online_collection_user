@@ -1,3 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_collection_user_info,collection.user.info,model_collection_user_info,,1,1,1,1
+access_collection_user_info_history,collection.user.info.history,model_collection_user_info_history,,1,1,1,1
 access_collection_user_info_analyze,collection.user.info.analyze,model_collection_user_info_analyze,,1,1,1,1

@@ -24,3 +24,8 @@ class CollectionUserInformation(models.Model):
         """
         self._cr.execute(create_index_sql)
         return res
+
+class CollectionUserInformationHistory(models.Model):
+    _name = 'collection.user.info.history'
+    _inherit = 'collection.user.info'
+    _description = 'Collection User History information '
